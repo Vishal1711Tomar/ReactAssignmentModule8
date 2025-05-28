@@ -8,6 +8,34 @@ const Cart = ({ onClose }) => {
   const totalAmount = `${cartCtx.totalAmount.toFixed(2)}`;
   const hasItems = cartCtx.items.length > 0;
 
+  const handleOrder = async () => {
+    const orderData = {
+      items: cartCtx.items,
+      totalAmount: cartCtx.totalAmount,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch('http://localhost:3001/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (response.ok) {
+        alert('Order is placed!');
+        onClose(); 
+      } else {
+        alert('Failed to place order.');
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('An error occurred while placing the order.');
+    }
+  };
+
   return (
     <CartModal onClose={onClose}>
       <ul>
@@ -17,14 +45,13 @@ const Cart = ({ onClose }) => {
               <h5>{item.name}</h5>
               <div>Quantity: {item.amount}</div>
               <div>Price: ₹{item.price}</div>
-              <div>Total: ₹{item.amount*item.price}</div>
+              <div>Total: ₹{item.amount * item.price}</div>
             </div>
             <div style={styles.counter}>
-  <button style={styles.button} onClick={() => cartCtx.removeItem(item.id)}>-</button>
-  <span style={styles.amount}>{item.amount}</span>
-  <button style={styles.button} onClick={() => cartCtx.addItem({ ...item, amount: 1 })}>+</button>
-</div>
-
+              <button style={styles.button} onClick={() => cartCtx.removeItem(item.id)}>-</button>
+              <span style={styles.amount}>{item.amount}</span>
+              <button style={styles.button} onClick={() => cartCtx.addItem({ ...item, amount: 1 })}>+</button>
+            </div>
           </li>
         ))}
       </ul>
@@ -34,11 +61,16 @@ const Cart = ({ onClose }) => {
       </div>
       <div className="text-end mt-3">
         <button onClick={onClose} className="btn btn-secondary">Close</button>
-        {hasItems && <button className="btn btn-primary ms-2">Order</button>}
+        {hasItems && (
+          <button className="btn btn-primary ms-2" onClick={handleOrder}>
+            Order
+          </button>
+        )}
       </div>
     </CartModal>
   );
 };
+
 const styles = {
   counter: {
     display: 'flex',
@@ -62,6 +94,5 @@ const styles = {
     textAlign: 'center',
   },
 };
-
 
 export default Cart;
